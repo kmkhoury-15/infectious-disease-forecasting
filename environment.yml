@@ -1,0 +1,16 @@
+name: infectious-disease-forecasting
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - flask
+  - pandas
+  - numpy
+  - matplotlib
+  - statsmodels
+  - scikit-learn
+  - openpyxl
+  - xlrd
+  - requests
+  - pytest
+  - pip

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Infectious Disease Forecasting</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <section class="hero">
+      <h1>Infectious Disease Forecasting</h1>
+      <p>Upload case-count data, configure the time series, and run a SARIMA + Fourier + MLP ensemble forecast locally.</p>
+    </section>
+
+    {% if error %}
+      <div class="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" class="card form-grid">
+      <label class="full">Case data file
+        <input type="file" name="case_file" id="case_file" accept=".csv,.txt,.tsv,.xlsx,.xls" required>
+        <small id="file_name"></small>
+      </label>
+
+      <label>Date column <input type="text" name="date_col" placeholder="e.g., DTEVENT or date"></label>
+      <label>Case count column <input type="text" name="value_col" placeholder="e.g., weekly_case_count or cases"></label>
+      <label>Disease column <input type="text" name="disease_col" placeholder="optional"></label>
+      <label>Disease value <input type="text" name="disease_value" placeholder="optional filter"></label>
+      <label>Geography column <input type="text" name="geography_col" placeholder="optional"></label>
+      <label>Geography value <input type="text" name="geography_value" placeholder="optional filter"></label>
+
+      <label>Input frequency
+        <select name="frequency">
+          <option value="daily">Daily</option>
+          <option value="weekly" selected>Weekly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </label>
+      <label>Aggregation
+        <select name="aggregation">
+          <option value="sum" selected>Sum</option>
+          <option value="mean">Mean</option>
+        </select>
+      </label>
+      <label>Missing values
+        <select name="fill_method">
+          <option value="zero" selected>Fill with 0</option>
+          <option value="ffill">Forward-fill</option>
+          <option value="interpolate">Interpolate</option>
+        </select>
+      </label>
+      <label>Forecast horizon <input type="number" name="horizon" value="12" min="1"></label>
+      <label>Train/test split <input type="number" name="train_test_split" value="0.2" min="0.05" max="0.5" step="0.05"></label>
+      <label>Seasonal period <input type="number" name="seasonal_period" value="52" min="2"></label>
+      <label>Fourier harmonics <input type="number" name="n_harmonics" value="5" min="1"></label>
+      <label>MLP lookback <input type="number" name="lookback" value="12" min="2"></label>
+      <label>Ensemble method
+        <select name="ensemble_method">
+          <option value="weighted_mean" selected>Weighted mean</option>
+          <option value="mean">Mean</option>
+          <option value="median">Median</option>
+        </select>
+      </label>
+      <label>SARIMA weight <input type="number" name="sarima_weight" value="1" step="0.1" min="0"></label>
+      <label>Fourier weight <input type="number" name="fourier_weight" value="1" step="0.1" min="0"></label>
+      <label>MLP weight <input type="number" name="mlp_weight" value="1" step="0.1" min="0"></label>
+
+      <fieldset class="full check-row">
+        <legend>Models</legend>
+        <label><input type="checkbox" name="run_sarima" checked> SARIMA</label>
+        <label><input type="checkbox" name="run_fourier" checked> Fourier</label>
+        <label><input type="checkbox" name="run_mlp" checked> MLP neural net</label>
+        <label><input type="checkbox" name="smooth_outliers"> Smooth extreme outliers</label>
+      </fieldset>
+
+      <button type="submit" class="full">Run forecast</button>
+    </form>
+
+    {% if result %}
+    <section class="card results">
+      <h2>Forecast output</h2>
+      <div class="download-row">
+        <a href="{{ url_for('download', kind='csv') }}">Download CSV</a>
+        <a href="{{ url_for('download', kind='xlsx') }}">Download Excel</a>
+        <a href="{{ url_for('download', kind='png') }}">Download PNG</a>
+      </div>
+      {% if image_base64 %}
+        <img src="data:image/png;base64,{{ image_base64 }}" alt="Forecast plot">
+      {% endif %}
+      <h3>Evaluation</h3>
+      <pre>{{ result.evaluation }}</pre>
+    </section>
+    {% endif %}
+  </main>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
